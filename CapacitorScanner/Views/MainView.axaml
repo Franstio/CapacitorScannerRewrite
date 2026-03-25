@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"             xmlns:vm="clr-namespace:CapacitorScanner.ViewModels"
+			 xmlns:controls="clr-namespace:CapacitorScanner.Controls"
+			 x:DataType="vm:MainViewModel"
+             x:Class="CapacitorScanner.Views.MainView"
+			 
+			 xmlns:bb="clr-namespace:CapacitorScanner.Behaviours;assembly=CapacitorScanner"
+			 bb:ControlOnLoadBehaviour.OnLoad="{Binding LoadStationCommand}"
+			>
+	<UserControl.Styles>
+		<Style Selector="TabItem:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#E0E0E0"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+	</UserControl.Styles>
+	<DockPanel>
+
+		<DockPanel VerticalAlignment="Stretch"  Background="White" >
+			<Grid DockPanel.Dock="Top" ColumnDefinitions="70*,30*" RowDefinitions="auto">
+				<Label Padding="0,5,0,0" FontFamily="Century Gothic" FontSize="40" Foreground="White" HorizontalContentAlignment="Center"  Background="#4472c4" >PIDSG-BT Saleable Waste Control System</Label>
+				<Grid ColumnDefinitions="80*,20*" Grid.Column="1">
+					<Grid Margin="5,5,0,0"  ColumnDefinitions="auto" RowDefinitions="60*,40*">
+						<Image Width="250" Grid.Row="0" Source="avares://CapacitorScanner/Assets/panasonic.png"/>
+						<Label FontFamily="Century Gothic" FontSize="30" Foreground="Black"  FontWeight="Bold"  Grid.Row="1" Content="{Binding Time}"></Label>
+					</Grid>
+
+					<Button Grid.Column="1" FontFamily="Century Gothic" FontSize="30"  FontWeight="Bold" Foreground="White" Background="Red" Padding="10,5,10,5" Command="{Binding ExitCommand}" >X</Button>
+				</Grid>
+			</Grid>
+			<Grid DockPanel.Dock="Top" Background="#a9d18e"  ColumnDefinitions="90*,10*" RowDefinitions="auto">
+				<Label FontFamily="Century Gothic" FontSize="30" Foreground="#3e5d28" Content="{Binding StationName}"  />
+
+				<Label FontFamily="Century Gothic" FontSize="30" Foreground="#3e5d28" Grid.Column="1" Content="{Binding MachineName}"/>
+			</Grid>
+			<TabControl  Padding="10" VerticalAlignment="Stretch" Margin="5" >
+				<TabItem FontFamily="Century Gothic" FontSize="30"  FontWeight="Bold" Foreground="Black"   Header="Main">
+					<controls:WasteControl/>
+				</TabItem >
+				<TabItem FontFamily="Century Gothic" FontSize="30"  FontWeight="Bold" Foreground="Black"  Header="Setting">
+					<controls:SettingsControl/>
+				</TabItem>
+				<TabItem FontFamily="Century Gothic" FontSize="30"  FontWeight="Bold" Foreground="Black"   Header="Admin">
+					<controls:LoginControl/>
+				</TabItem>
+			</TabControl>
+		</DockPanel>
+	</DockPanel>
+</UserControl>
