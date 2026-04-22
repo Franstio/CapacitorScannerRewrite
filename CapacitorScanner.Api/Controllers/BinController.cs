@@ -15,6 +15,7 @@ namespace CapacitorScanner.Api.Controllers
     {
         private readonly BinLocalDbService _binLocalDbService;
         private readonly PIDSGService pidsgService;
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
         private readonly ConfigService configService;
         public BinController(BinLocalDbService binLocalDbService, PIDSGService pidsgService, ConfigService configService)
         {
@@ -45,7 +46,6 @@ namespace CapacitorScanner.Api.Controllers
             await _binLocalDbService.UpdateBin(dataBin);
             return Ok();
         }
-
         [HttpGet("check")]
         public async Task<IActionResult> CheckTransaction([FromQuery]string name)
         {
@@ -82,18 +82,34 @@ namespace CapacitorScanner.Api.Controllers
         [HttpPost("Transaction")]
         public async Task<IActionResult> SaveTransaction(TransactionActivityModel transaction)
         {
-            transaction.LoginDate = DateTime.Now.ToString("yyyy-MM-dd");
-            transaction.StationName = configService.Config.hostname;
-            ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
-            transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname,Convert.ToDouble( transaction.Weight?.ToString("0.00") ?? "0") , transaction.Activity!, transaction.BadgeNo!);
-            scraprecord.Status = "READY";
-            await _binLocalDbService.UpdateStatusBin("",string.IsNullOrEmpty( transaction.ToBinName) ? transaction.FromBinName! : transaction.ToBinName!);
-            await _binLocalDbService.CreateTransaction(scraprecord);
-            return Ok(new
+
+            var ok = Ok(new
             {
-                success=true,
+                success = true,
                 result = "Success"
             });
+            try
+            {
+                await semaphore.WaitAsync();
+                transaction.LoginDate = DateTime.Now.ToString("yyyy-MM-dd");
+                transaction.StationName = configService.Config.hostname;
+                ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
+                transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname, Convert.ToDouble(transaction.Weight?.ToString("0.00") ?? "0"), transaction.Activity!, transaction.BadgeNo!);
+                scraprecord.Code = DateTime.Now.ToString("yyyyMMdd_hhmmss");
+                scraprecord.Status = "READY";
+                await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction.ToBinName) ? transaction.FromBinName! : transaction.ToBinName!);
+                await _binLocalDbService.CreateTransaction(scraprecord);
+                return ok;
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return StatusCode(500, e.Message + "\n"+e.InnerException?.Message +"\n"+e.StackTrace );
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
         [HttpGet("status/{name}/{status}")]
         public async Task<IActionResult> SetStatusBin(string name,int status)

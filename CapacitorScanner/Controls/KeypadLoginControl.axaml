@@ -1,0 +1,82 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+			 xmlns:vm="clr-namespace:CapacitorScanner.ViewModels;assembly=CapacitorScanner"
+			 x:DataType="vm:KeypadLoginViewModel"
+			 xmlns:bb="clr-namespace:CapacitorScanner.Behaviours;assembly=CapacitorScanner"
+			 bb:ControlOnLoadBehaviour.OnLoad="{Binding LoadCommand}"
+			 x:Class="CapacitorScanner.Controls.KeypadLoginControl">
+	<UserControl.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontFamily" Value="Century Gothic"/>
+			<Setter Property="Foreground" Value="Gray"/>
+			<Setter Property="FontSize" Value="30"/>
+			<Setter Property="HorizontalAlignment" Value="Left"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="Background" Value="White"/>
+		</Style>
+		<Style Selector="TextBox:pointerover">
+			<Setter Property="Background" Value="Gray"/>
+			<Setter Property="Foreground" Value="Black"/>
+
+		</Style>
+		<Style Selector="TextBox:focus">
+			<Setter Property="Background" Value="WhiteSmoke"/>
+			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="CaretBrush" Value="Black"/>
+
+		</Style>
+		<Style Selector="TextBox">
+			<Setter Property="CaretBrush" Value="Black"/>
+			<Setter Property="FontFamily" Value="Century Gothic"/>
+			<Setter Property="Foreground" Value="Gray"/>
+			<Setter Property="FontSize" Value="90"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+		
+		<Style Selector="Button">
+			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="FontFamily" Value="Century Gothic"/>
+			<Setter Property="Background" Value="DarkGray"/>
+			<Setter Property="FontSize" Value="90"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+		<Style Selector="TextBox /template/ Border">
+			<Setter Property="Background" Value="White"/>
+		</Style>
+	</UserControl.Styles>
+	<StackPanel Spacing="10" Margin="10">
+		<Grid ColumnDefinitions="20*,80*" RowDefinitions="auto" >
+			<TextBlock>Password</TextBlock>
+			<TextBox Grid.Column="1" HorizontalAlignment="Stretch" PasswordChar="*" Text="{Binding Password, Mode=TwoWay}" ></TextBox>
+		</Grid>
+		<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+			<Border  Background="WhiteSmoke" Padding="10" CornerRadius="10">
+				<StackPanel Orientation="Horizontal" >
+					<UniformGrid Rows="3" Columns="3" Margin="4" ColumnSpacing="6" RowSpacing="6">
+						<Button Background="DarkGray" Foreground="Black" Content="1" Command="{Binding KeyCommand}" CommandParameter="1"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="2" Command="{Binding KeyCommand}" CommandParameter="2"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="3" Command="{Binding KeyCommand}" CommandParameter="3"/>
+
+						<!-- Row 1 -->
+
+						<!-- Row 2 -->
+						<Button Background="DarkGray" Foreground="Black"  Content="4" Command="{Binding KeyCommand}" CommandParameter="4"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="5" Command="{Binding KeyCommand}" CommandParameter="5"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="6" Command="{Binding KeyCommand}" CommandParameter="6"/>
+
+						<!-- Row 3 -->
+						<Button Background="DarkGray" Foreground="Black"  Content="7" Command="{Binding KeyCommand}" CommandParameter="7"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="8" Command="{Binding KeyCommand}" CommandParameter="8"/>
+						<Button Background="DarkGray" Foreground="Black"  Content="9" Command="{Binding KeyCommand}" CommandParameter="9"/>
+					</UniformGrid>
+					<Button Background="DarkGray" Foreground="Black"  Content="⌫" Command="{Binding BackspaceCommand}" Margin="4" VerticalAlignment="Top"/>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+
+		<Button Background="WhiteSmoke" Command="{Binding LoginCommand}" BorderBrush="Black" Foreground="Black" BorderThickness="2" Padding="20" CornerRadius="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Login</Button>
+	</StackPanel>
+</UserControl>

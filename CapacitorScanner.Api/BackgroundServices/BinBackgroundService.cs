@@ -40,7 +40,7 @@ namespace CapacitorScanner.Api.BackgroundServices
                                     wastetype = item.scraptype_name,
                                     binweight = item.weight,
                                     lastfrombinname = item.lastfrombinname,
-                                    lastbadgeno = item.lastbadgeno,
+//                                    lastbadgeno = item.lastbadgeno,
                                     weightsystem = item.weightsystem
 
                                 });
@@ -49,7 +49,7 @@ namespace CapacitorScanner.Api.BackgroundServices
                             {
                                 binData.maxweight = item.capacity;
                                 binData.lastfrombinname = item.lastfrombinname;
-                                binData.lastbadgeno = item.lastbadgeno;
+//                                binData.lastbadgeno = item.lastbadgeno;
                                 await binLocalDbService.UpdateBin(binData);
                             }
                         }

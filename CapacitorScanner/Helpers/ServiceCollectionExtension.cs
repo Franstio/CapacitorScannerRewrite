@@ -15,7 +15,7 @@ namespace CapacitorScanner.Helpers
     {
         public static void AddCommonServices(this IServiceCollection services)
         {
-            Type[] viewmodels = [typeof(MainViewModel), typeof(WasteControlViewModel), typeof(BinControlViewModel), typeof(SettingsViewModel), typeof(LoginViewModel)];
+            Type[] viewmodels = [typeof(MainViewModel),typeof(KeypadLoginViewModel), typeof(WasteControlViewModel), typeof(BinControlViewModel), typeof(SettingsViewModel), typeof(LoginViewModel)];
             foreach (var viewmodel in viewmodels)
                 services.AddSingleton(viewmodel);
             Type[] service = [typeof(PIDSGService), typeof(BinLocalDbService)];

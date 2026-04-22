@@ -232,6 +232,9 @@ namespace CapacitorScanner.ViewModels
             }
             OpenBin = bin;
             if (bin is null || OpenBin is null) return;
+            var dataBin = await DbService.GetBin(OpenBin.openbinname);
+            dataBin!.lastbadgeno = User.badgeno;
+            await DbService.UpdateBin(dataBin);
             await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
             if (activity.Contains(bin.activity) && bin.openbinname.ToLower() != "nothing")
             {
@@ -259,23 +262,59 @@ namespace CapacitorScanner.ViewModels
         }
         async Task<bool> SendBinVerif(string bin)
         {
+            string[] urls = ["https", "http"];
+            Task<bool>[] tasks = new Task<bool>[urls.Length];
+            bool result = false;
+            CancellationTokenSource tokenCancel = new CancellationTokenSource();
             try
             {
-                string binhost = await DbService.GetHostname(bin);
-                string token = $"root:00000000";
-                string base64token = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
-                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"https://{binhost}/verifikasi?verifikasi=1");
-                req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
+                tokenCancel.Token.ThrowIfCancellationRequested();
+                tokenCancel.CancelAfter(TimeSpan.FromSeconds(7));
+                do
+                {
+                    for (int i = 0; i < tasks.Length; i++)
+                    {
+                        string url = urls[i];
+                        tasks[i] = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                string binhost = await DbService.GetHostname(bin);
+                                string token = $"root:00000000";
+                                string base64token = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
+                                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi?verifikasi=1");
+                                req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
 
-                var res = await httpClient.SendAsync(req);
-                res.EnsureSuccessStatusCode();
-                return true;
+                                var res = await httpClient.SendAsync(req);
+                                res.EnsureSuccessStatusCode();
+
+                                req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi?verifikasi=1");
+                                req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
+
+                                res = await httpClient.SendAsync(req);
+                                res.EnsureSuccessStatusCode();
+                                string data = await res.Content.ReadAsStringAsync();
+                                return data.Contains("1");
+                            }
+                            catch (HttpRequestException ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                return false;
+                            }
+                        });
+                    }
+
+                    var ret = await Task.WhenAll(tasks);
+                    result = ret?.Any(x => x) ?? false;
+                }
+                while (!result);
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                result = false;
             }
+            return result;
         }
         async Task Verification()
         {
@@ -406,10 +445,11 @@ namespace CapacitorScanner.ViewModels
                 ResetStateInput();
                 Scan = string.Empty;
                 if (OpenBin is not null)
-                
+                {     
                     await DbService.UpdateStatusBin("", OpenBin.openbinname);
                 }
             }
         }
+
     }
 }

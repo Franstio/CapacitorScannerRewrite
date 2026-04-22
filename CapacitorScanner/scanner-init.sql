@@ -9,6 +9,9 @@ bin text,
 status text,
 host text,
 weightresult real,
+realweight real,
+prevweight real,
+code text,
 activity text,
 lastbadgeno text
 );

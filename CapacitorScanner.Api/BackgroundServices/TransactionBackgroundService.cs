@@ -2,6 +2,7 @@
 using CapacitorScanner.Core.Model;
 using CapacitorScanner.Core.Model.LocalDb;
 using CapacitorScanner.Core.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace CapacitorScanner.Api.BackgroundServices
 {
@@ -28,21 +29,28 @@ namespace CapacitorScanner.Api.BackgroundServices
                         var data = await binLocalDbService.GetFailedORReadyScrapTransaction();
                         foreach (var transaction in data)
                         {
-                            var res = await binService.SendTransactionPIDSG(new Core.Model.PIDSG.TransactionActivityModel() { 
-                                Activity = transaction.Activity,
-                                BadgeNo = transaction.Badgeno,
-                                FromBinName = transaction.Container,
-                                LoginDate = transaction.LoginDate,
-                                StationName = configService.Config.hostname,
-                                ToBinName = transaction.Bin,
-                                Weight = Convert.ToDecimal(transaction.WeightResult.ToString("0.00"))
-                            });
-                            string status = res ? (transaction.Status == "READY" ? "SUCCESS": "SUCCESS - OFFLINE") : "FAILED";
-                            if (transaction.Status == "FAILED" && res)
+                            string status = "REJECT";
+                            if (transaction.WeightResult > -2)
                             {
-                                transaction.SendDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                                var res = await binService.SendTransactionPIDSG(new Core.Model.PIDSG.TransactionActivityModel()
+                                {
+                                    Activity = transaction.Activity,
+                                    BadgeNo = transaction.Badgeno,
+                                    FromBinName = transaction.Container,
+                                    LoginDate = transaction.LoginDate,
+                                    StationName = configService.Config.hostname,
+                                    ToBinName = transaction.Bin,
+                                    Weight = Convert.ToDecimal(transaction.WeightResult.ToString("0.00"))
+                                });
+                                status = res ? (transaction.Status == "READY" ? "SUCCESS" : "SUCCESS - OFFLINE") : "FAILED";
+
+                                if (transaction.Status == "FAILED" && res)
+                                {
+                                    transaction.SendDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                                }
                             }
-                            await binLocalDbService.UpdateStatus(status,transaction.Id);
+                            await binLocalDbService.UpdateStatus(status, transaction.Id);
                         }
                         
                     }

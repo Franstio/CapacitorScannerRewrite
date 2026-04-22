@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -67,10 +68,27 @@ namespace CapacitorScanner.Core.Services
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task CreateTransaction(ScrapTransactionModel transaction)
+        public async Task<bool> UpdatePasswordLogin(string username,string oldpassword,string newpassword)
         {
+            var hashOldPassword = HashPassword(oldpassword);
+            var login = await Login(new LoginModel() { username = username, password =hashOldPassword });
+            if (login is null)
+                return false;
             using (var con = await GetConn())
             {
+                string query = "update login set password=@password where username=@username";
+                await con.ExecuteAsync(query, new { username = username, password = HashPassword(newpassword) });
+            }
+            return true;
+        }
+        public async Task CreateTransaction(ScrapTransactionModel transaction)
+        {
+            var check = await GetScrapTransaction(transaction.Code);
+            if (check.Any() || string.IsNullOrEmpty(transaction.Code))
+                return;
+            using (var con = await GetConn())
+            {
+                   
                 await con.ExecuteAsync(@"INSERT INTO ScrapTransaction (
                     transaction_date,
                     login_date,
@@ -82,7 +100,10 @@ namespace CapacitorScanner.Core.Services
                     host,
                     weightresult,
                     activity,
-                    lastbadgeno
+                    lastbadgeno,
+                    realweight,
+                    prevweight,
+                    code
                 ) VALUES (
                     @TransactionDate,
                     @LoginDate,
@@ -94,7 +115,10 @@ namespace CapacitorScanner.Core.Services
                     @Host,
                     @WeightResult,
                     @Activity,
-                    @LastBadgeno
+                    @LastBadgeno,
+                    @RealWeight,
+                    @PrevWeight,
+                    @Code
                 );", transaction);
             }
         }
@@ -156,10 +180,20 @@ namespace CapacitorScanner.Core.Services
         {
             using (var con = await GetConn())
             {
-                string query = $"Select id,transaction_date as TransactionDate,send_date as SendDate,login_date as LoginDate,badgeno as BadgeNo,container as Container,bin as Bin,status as Status,host as Host,weightresult as WeightResult,activity as Activity,lastbadgeno as LastBadgeNo from scraptransaction" +
+                string query = $"Select id,transaction_date as TransactionDate,send_date as SendDate,login_date as LoginDate,badgeno as BadgeNo,container as Container,bin as Bin,status as Status,host as Host,weightresult as WeightResult,activity as Activity,lastbadgeno as LastBadgeNo,realweight as RealWeight,prevweight as PrevWeight,code as Code from scraptransaction" +
                     $" where status IN ('FAILED','READY')  order by datetime(transaction_date) asc";
 
                 return await con.QueryAsync<ScrapTransactionModel>(query);
+            }
+        }
+        public async Task<IEnumerable<ScrapTransactionModel>> GetScrapTransaction(string code)
+        {
+            using (var con = await GetConn())
+            {
+                string query = $"Select id,transaction_date as TransactionDate,send_date as SendDate,login_date as LoginDate,badgeno as BadgeNo,container as Container,bin as Bin,status as Status,host as Host,weightresult as WeightResult,activity as Activity,lastbadgeno as LastBadgeNo,realweight as RealWeight,prevweight as PrevWeight,code as Code from scraptransaction" +
+                    $" where code=@code  order by datetime(transaction_date) asc";
+
+                return await con.QueryAsync<ScrapTransactionModel>(query, new { code });
             }
         }
         public async Task UpdateStatus(string status, int id)

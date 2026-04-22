@@ -19,6 +19,9 @@ namespace CapacitorScanner.Core.Model.LocalDb
         public double WeightResult { get; set; } = 0.0;
         public string Activity { get; set; } = string.Empty;
         public string LastBadgeno { get; set; } = string.Empty;
+        public double RealWeight { get; set; } = 0.0;
+        public double PrevWeight { get; set; } = 0.0;
+        public string Code { get; set; } = string.Empty;
         public string SendDate { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
         public ScrapTransactionModel() { }

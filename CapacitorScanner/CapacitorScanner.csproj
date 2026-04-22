@@ -40,6 +40,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\KeypadLoginControl.axaml.cs">
+      <DependentUpon>KeypadLoginControl.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="scanner-init.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

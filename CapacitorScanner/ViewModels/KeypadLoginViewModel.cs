@@ -12,14 +12,16 @@ using System.Threading.Tasks;
 
 namespace CapacitorScanner.ViewModels
 {
-    public partial class LoginViewModel : ObservableObject
+    public partial class KeypadLoginViewModel : ObservableObject
     {
         [ObservableProperty]
+        private string password = string.Empty;
+
         private LoginModel user = new LoginModel();
 
         private BinLocalDbService _service;
         private AppState _state;
-        public LoginViewModel(BinLocalDbService dbservice,AppState state)
+        public KeypadLoginViewModel(BinLocalDbService dbservice,AppState state)
         {
             _service = dbservice;
             _state = state;
@@ -38,13 +40,15 @@ namespace CapacitorScanner.ViewModels
         [RelayCommand]
         public void Load()
         {
-            User = new LoginModel();
+            user = new LoginModel();
+            user.username = "admin";
+            Password = string.Empty;
         }
         [RelayCommand]
         public async Task Login()
         {
-            User.password = HashPassword(User.password);
-            var res = await _service.Login(User);
+            user.password = HashPassword(Password);
+            var res = await _service.Login(user);
             _state.Login = res;
             try
             {
@@ -56,21 +60,19 @@ namespace CapacitorScanner.ViewModels
         [RelayCommand]
         public void Key(string key)
         {
-
+            Password += key;
+        }
+        [RelayCommand]
+        public void Clear()
+        {
+            Password = string.Empty;
         }
         [RelayCommand]
         public void Backspace()
         {
-
-        }
-        [RelayCommand]
-        public void Shift()
-        {
-
-        }
-        [RelayCommand]
-        public void Enter()
-        {
+            if (password.Length < 1)
+                return;
+            Password = Password.Remove(Password.Length-1);
 
         }
     }

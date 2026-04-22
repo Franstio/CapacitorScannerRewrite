@@ -43,14 +43,14 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     public async Task Exit()
     {
-        var res = await dialogService.ShowConfirmAsync("Konfirmasi Keluar", "Apakah anda yakin untuk keluar dan melakukan proses rebooting?");
+        var res = await dialogService.ShowConfirmAsync("Konfirmasi Keluar", "Apakah anda yakin untuk keluar?");
         if (res)
         {
-            System.Diagnostics.Process.Start(new ProcessStartInfo() { FileName = "sudo", Arguments = "reboot" });
-            await Task.Delay(1000);
+            //System.Diagnostics.Process.Start(new ProcessStartInfo() { FileName = "sudo", Arguments = "reboot" });
+            //await Task.Delay(1000);
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.Shutdown();
+                Environment.Exit(1);
             }
         }
     }
