@@ -96,6 +96,8 @@ namespace CapacitorScanner.Api.Controllers
                 ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
                 transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname, Convert.ToDouble(transaction.Weight?.ToString("0.00") ?? "0"), transaction.Activity!, transaction.BadgeNo!);
                 scraprecord.Code = DateTime.Now.ToString("yyyyMMdd_hhmmss");
+                scraprecord.RealWeight = Convert.ToDouble( transaction.realweight.ToString()!);
+                scraprecord.PrevWeight = Convert.ToDouble(transaction.prevweight.ToString()!);
                 scraprecord.Status = "READY";
                 await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction.ToBinName) ? transaction.FromBinName! : transaction.ToBinName!);
                 await _binLocalDbService.CreateTransaction(scraprecord);
