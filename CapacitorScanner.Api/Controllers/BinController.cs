@@ -6,6 +6,7 @@ using CapacitorScanner.Core.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel;
+using System.Net.Mail;
 
 namespace CapacitorScanner.Api.Controllers
 {
@@ -43,6 +44,17 @@ namespace CapacitorScanner.Api.Controllers
             await this.pidsgService.SendWeight(bin.BinName, bin.Weight);
             dataBin.weight = bin.Weight;
             dataBin.hostname = bin.Hostname;
+            await _binLocalDbService.UpdateBin(dataBin);
+            return Ok();
+        }
+        [HttpGet("prevWeight/{binName}")]
+        public async    Task<IActionResult> updatePrevWeight(string binName, [FromQuery] decimal prevWeight)
+        {
+            var dataBin = await _binLocalDbService.GetBin(binName);
+
+            if (dataBin == null)
+                return NotFound();
+            dataBin.prevweight = prevWeight;
             await _binLocalDbService.UpdateBin(dataBin);
             return Ok();
         }
@@ -91,16 +103,20 @@ namespace CapacitorScanner.Api.Controllers
             try
             {
                 await semaphore.WaitAsync();
+                var bin = await _binLocalDbService.GetBin(transaction.Activity == "DISPOSE" ? transaction.ToBinName! : transaction.FromBinName!)!;
                 transaction.LoginDate = DateTime.Now.ToString("yyyy-MM-dd");
                 transaction.StationName = configService.Config.hostname;
                 ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
                 transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname, Convert.ToDouble(transaction.Weight?.ToString("0.00") ?? "0"), transaction.Activity!, transaction.BadgeNo!);
                 scraprecord.Code = DateTime.Now.ToString("yyyyMMdd_hhmmss");
-                scraprecord.RealWeight = Convert.ToDouble( transaction.realweight.ToString()!);
-                scraprecord.PrevWeight = Convert.ToDouble(transaction.prevweight.ToString()!);
+                scraprecord.PrevWeight = Convert.ToDouble(bin?.prevweight.ToString() ?? "0");
+                scraprecord.RealWeight = Convert.ToDouble(bin?.weight.ToString()?? "0");
+                scraprecord.WeightResult = scraprecord.RealWeight - scraprecord.PrevWeight;
                 scraprecord.Status = "READY";
                 await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction.ToBinName) ? transaction.FromBinName! : transaction.ToBinName!);
                 await _binLocalDbService.CreateTransaction(scraprecord);
+                bin!.prevweight = Convert.ToDecimal(scraprecord.RealWeight.ToString());
+                await _binLocalDbService.UpdateBin(bin);
                 return ok;
             }
             catch(Exception e)

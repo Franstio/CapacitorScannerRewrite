@@ -18,5 +18,6 @@ namespace CapacitorScanner.Core.Model.LocalDb
         public string lastbadgeno { get; set; } = string.Empty;
         public string wastetype { get; set; } = string.Empty;
         public string status { get; set; } = string.Empty;  
+        public decimal? prevweight { get; set; } 
     }
 }

@@ -44,7 +44,8 @@ lastbadgeno TEXT,
 weightsystem text,
 binweight real,
 hostname TEXT,
-status TEXT
+status TEXT,
+prevweight real
 );
 
 
