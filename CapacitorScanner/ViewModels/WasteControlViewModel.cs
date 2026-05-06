@@ -234,10 +234,10 @@ namespace CapacitorScanner.ViewModels
             if (bin is null || OpenBin is null) return;
             var dataBin = await DbService.GetBin(OpenBin.openbinname);
             dataBin!.lastbadgeno = User.badgeno;
-            await DbService.UpdateBin(dataBin);
-            await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
             if (activity.Contains(bin.activity) && bin.openbinname.ToLower() != "nothing")
             {
+                await DbService.UpdateBin(dataBin);
+                await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
                 var localContainer = containerBin.ToLocalModel();
                 localContainer.activity = bin.activity == 1 ? "Dispose" : "Collection";
                 await DbService.InsertContainerBinLocal(localContainer);
@@ -288,7 +288,7 @@ namespace CapacitorScanner.ViewModels
                                 var res = await httpClient.SendAsync(req);
                                 res.EnsureSuccessStatusCode();
 
-                                req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi?verifikasi=1");
+                                req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi-check");
                                 req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
 
                                 res = await httpClient.SendAsync(req);
