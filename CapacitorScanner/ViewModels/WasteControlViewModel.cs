@@ -298,7 +298,9 @@ namespace CapacitorScanner.ViewModels
                             }
                             catch (HttpRequestException ex)
                             {
-                                Console.WriteLine(ex.Message);
+
+                                Console.WriteLine(url);
+                                Console.WriteLine(ex.Message + " "+ ex.InnerException?.Message);
                                 return false;
                             }
                         });
