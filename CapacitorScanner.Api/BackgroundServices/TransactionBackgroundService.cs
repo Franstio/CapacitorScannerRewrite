@@ -30,7 +30,7 @@ namespace CapacitorScanner.Api.BackgroundServices
                         foreach (var transaction in data)
                         {
                             string status = "REJECT";
-                            if (transaction.WeightResult > -2)
+                            if (transaction.WeightResult > -2 || transaction.Activity.ToUpper() == "COLLECTION")
                             {
 
                                 var res = await binService.SendTransactionPIDSG(new Core.Model.PIDSG.TransactionActivityModel()

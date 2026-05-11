@@ -94,7 +94,8 @@ namespace CapacitorScanner.Api.Controllers
         [HttpPost("Transaction")]
         public async Task<IActionResult> SaveTransaction(TransactionActivityModel transaction)
         {
-
+            Func<bool> getActivity = () => transaction.Activity?.ToUpper() == "DISPOSE" ;
+            Func<Task<BinLocalModel?>> getBin = async () => await _binLocalDbService.GetBin(transaction.Activity?.ToUpper() == "DISPOSE" ? transaction.ToBinName! : transaction.FromBinName!)!;
             var ok = Ok(new
             {
                 success = true,
@@ -103,26 +104,29 @@ namespace CapacitorScanner.Api.Controllers
             try
             {
                 await semaphore.WaitAsync();
-                var bin = await _binLocalDbService.GetBin(transaction.Activity?.ToUpper() == "DISPOSE" ? transaction.ToBinName! : transaction.FromBinName!)!;
-                transaction.LoginDate = DateTime.Now.ToString("yyyy-MM-dd");
+                var bin = await getBin();
+                transaction.LoginDate = transaction.LoginDate ?? DateTime.Now.ToString("yyyy-MM-dd");
                 transaction.StationName = configService.Config.hostname;
                 ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
                 transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname, Convert.ToDouble(transaction.Weight?.ToString("0.00") ?? "0"), transaction.Activity!, transaction.BadgeNo!);
-                scraprecord.Code = DateTime.Now.ToString("yyyyMMdd_hhmmss");
+                scraprecord.Code = DateTime.Parse(transaction.LoginDate)!.ToString("yyyyMMdd_hhmmss");
                 scraprecord.PrevWeight = Convert.ToDouble(bin?.prevweight.ToString() ?? "0");
-                scraprecord.RealWeight = Convert.ToDouble(transaction?.Weight.ToString()?? "0");
-                scraprecord.WeightResult = scraprecord.RealWeight - scraprecord.PrevWeight;
+                scraprecord.RealWeight = getActivity() ? Convert.ToDouble(transaction?.Weight.ToString() ?? "0") : 0;
+                scraprecord.WeightResult = getActivity() ? scraprecord.RealWeight - scraprecord.PrevWeight : 0;
                 scraprecord.Status = "READY";
-                await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction?.ToBinName) ? transaction?.FromBinName! : transaction.ToBinName!);
-                await _binLocalDbService.CreateTransaction(scraprecord);
                 bin!.prevweight = Convert.ToDecimal(scraprecord.RealWeight.ToString());
                 await _binLocalDbService.UpdateBin(bin);
+
+                if (bin.prevweight != Convert.ToDecimal(scraprecord.RealWeight.ToString()))
+                    throw new Exception("prev Weight not updated");
+                await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction?.ToBinName) ? transaction?.FromBinName! : transaction.ToBinName!);
+                await _binLocalDbService.CreateTransaction(scraprecord);
                 return ok;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return StatusCode(500, e.Message + "\n"+e.InnerException?.Message +"\n"+e.StackTrace );
+                return StatusCode(500, e.Message + "\n" + e.InnerException?.Message + "\n" + e.StackTrace);
             }
             finally
             {
