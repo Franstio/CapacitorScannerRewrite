@@ -57,8 +57,6 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     public async Task LoadStation()
     {
-        try
-        {
             var s = (await binLocalDbService.GetStationInfoLocal("description")).FirstOrDefault()?.datavalue;
             StationName = (await binLocalDbService.GetStationInfoLocal("description"))?.FirstOrDefault()?.datavalue ?? StationName;
             MachineName = ConfigService.Config.hostname;
@@ -77,11 +75,7 @@ public partial class MainViewModel : ViewModelBase
                 MachineName = ConfigService.Config.hostname;
             };
             timer2.Start();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message + " " + ConfigService.Config.dbpath);
-        }
+
     }
 
 
