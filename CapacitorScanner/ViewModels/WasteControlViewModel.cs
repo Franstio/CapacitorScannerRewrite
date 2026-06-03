@@ -236,6 +236,14 @@ namespace CapacitorScanner.ViewModels
             dataBin!.lastbadgeno = User.badgeno;
             if (activity.Contains(bin.activity) && bin.openbinname.ToLower() != "nothing")
             {
+                if (dataBin.weight != dataBin.prevweight)
+                {
+                    decimal diffCalc = dataBin.prevweight == 0 ?
+                        Math.Abs(((dataBin.prevweight.Value! - dataBin.weight) / Math.Abs(dataBin.weight)) * 100) :
+                        Math.Abs(((dataBin.weight - dataBin.prevweight!.Value!) / Math.Abs(dataBin.prevweight.Value!)) * 100);
+
+                    dataBin.prevweight = diffCalc > 4 ? dataBin.prevweight : dataBin.weight;
+                }
                 await DbService.UpdateBin(dataBin);
                 await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
                 var localContainer = containerBin.ToLocalModel();
@@ -288,12 +296,14 @@ namespace CapacitorScanner.ViewModels
                                 var res = await httpClient.SendAsync(req);
                                 res.EnsureSuccessStatusCode();
 
+                                Console.WriteLine(await res.Content.ReadAsStringAsync());
                                 req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi-check");
                                 req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
 
                                 res = await httpClient.SendAsync(req);
                                 res.EnsureSuccessStatusCode();
                                 string data = await res.Content.ReadAsStringAsync();
+                                Console.WriteLine(data);
                                 return data.Contains("1");
                             }
                             catch (HttpRequestException ex)
@@ -438,18 +448,66 @@ namespace CapacitorScanner.ViewModels
             transactionType = await DbService.GetAppData<TransactionType?>(nameof(transactionType)) ?? null;
             //            IsAuto = await DbService.GetAppData<bool>(nameof(IsAuto));
         }
+        async Task<bool> CancelTransactionBin(string url,string binname)
+        {
+            try
+            {
+                string binhost = await DbService.GetHostname(binname);
+                string token = $"root:00000000";
+                string base64token = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
+                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/resetBin");
+                req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
+
+                var res = await httpClient.SendAsync(req);
+                res.EnsureSuccessStatusCode();
+                string data = await res.Content.ReadAsStringAsync();
+                return data.Contains("1");
+            }
+            catch (HttpRequestException ex)
+            {
+
+                Console.WriteLine(url);
+                Console.WriteLine(ex.Message + " " + ex.InnerException?.Message);
+                return false;
+            }
+
+        }
         [RelayCommand]
         public async Task Refresh()
         {
             var res = await WeakReferenceMessenger.Default.Send(new LoginMessage());
             if (res is not null)
             {
-                ResetStateInput();
                 Scan = string.Empty;
                 if (OpenBin is not null)
                 {     
                     await DbService.UpdateStatusBin("", OpenBin.openbinname);
+                    string[] urls = ["https", "http"];
+                    Task<bool>[] tasks = new Task<bool>[urls.Length];
+                    bool result = false;
+                    CancellationTokenSource tokenCancel = new CancellationTokenSource();
+                    try
+                    {
+                        tokenCancel.Token.ThrowIfCancellationRequested();
+                        tokenCancel.CancelAfter(TimeSpan.FromSeconds(7));
+                        do
+                        {
+                            for (int i = 0; i < tasks.Length; i++)
+                            {
+                                string url = urls[i];
+                                tasks[i] = Task.Run(() => CancelTransactionBin(url, OpenBin.openbinname));
+                            }
+                            var ret = await Task.WhenAll(tasks);
+                            result = ret?.Any(x => x) ?? false;
+                        }
+                        while (!result);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message + " | "+ ex.StackTrace);
+                    }
                 }
+                ResetStateInput();
             }
         }
 

@@ -41,7 +41,7 @@ namespace CapacitorScanner.Api.BackgroundServices
                                     LoginDate = transaction.LoginDate,
                                     StationName = configService.Config.hostname,
                                     ToBinName = transaction.Bin,
-                                    Weight = Convert.ToDecimal(transaction.WeightResult.ToString("0.00"))
+                                    Weight = transaction.Activity.ToUpper() == "DISPOSE" ? Convert.ToDecimal(transaction.WeightResult.ToString("0.00")) : 0
                                 });
                                 status = res ? (transaction.Status == "READY" ? "SUCCESS" : "SUCCESS - OFFLINE") : "FAILED";
 

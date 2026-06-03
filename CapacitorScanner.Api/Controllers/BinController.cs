@@ -105,16 +105,23 @@ namespace CapacitorScanner.Api.Controllers
             {
                 await semaphore.WaitAsync();
                 var bin = await getBin();
-                transaction.LoginDate = transaction.LoginDate ?? DateTime.Now.ToString("yyyy-MM-dd");
+                transaction.LoginDate = string.IsNullOrEmpty(transaction.LoginDate) ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : transaction.LoginDate;
                 transaction.StationName = configService.Config.hostname;
                 ScrapTransactionModel scraprecord = new ScrapTransactionModel(-1, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), transaction.LoginDate!,
                 transaction.BadgeNo!, transaction.FromBinName!, transaction.ToBinName!, "ONLINE", configService.Config.hostname, Convert.ToDouble(transaction.Weight?.ToString("0.00") ?? "0"), transaction.Activity!, transaction.BadgeNo!);
-                scraprecord.Code = DateTime.Parse(transaction.LoginDate)!.ToString("yyyyMMdd_hhmmss");
+                scraprecord.Code = DateTime.Parse(transaction.LoginDate)!.ToString("yyyyMMdd_HHmmss");
                 scraprecord.PrevWeight = Convert.ToDouble(bin?.prevweight.ToString() ?? "0");
-                scraprecord.RealWeight = getActivity() ? Convert.ToDouble(transaction?.Weight.ToString() ?? "0") : 0;
-                scraprecord.WeightResult = getActivity() ? scraprecord.RealWeight - scraprecord.PrevWeight : 0;
+                scraprecord.RealWeight = Convert.ToDouble(transaction?.Weight.ToString() ?? "0") ;
+                scraprecord.WeightResult = scraprecord.RealWeight - scraprecord.PrevWeight;
                 scraprecord.Status = "READY";
-                bin!.prevweight = Convert.ToDecimal(scraprecord.RealWeight.ToString());
+
+                var check = await _binLocalDbService.GetScrapTransaction(scraprecord.Code);
+                if (check.Any() || string.IsNullOrEmpty(scraprecord.Code))
+                {
+                    await _binLocalDbService.UpdateStatusBin("", string.IsNullOrEmpty(transaction?.ToBinName) ? transaction?.FromBinName! : transaction.ToBinName!);
+                    return ok;
+                }
+                bin!.prevweight =  Convert.ToDecimal(scraprecord.RealWeight.ToString() );
                 await _binLocalDbService.UpdateBin(bin);
 
                 if (bin.prevweight != Convert.ToDecimal(scraprecord.RealWeight.ToString()))
