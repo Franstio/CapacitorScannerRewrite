@@ -233,16 +233,23 @@ namespace CapacitorScanner.ViewModels
             OpenBin = bin;
             if (bin is null || OpenBin is null) return;
             var dataBin = await DbService.GetBin(OpenBin.openbinname);
+            if (dataBin is null)
+            {
+                await dialogService.ShowMessageAsync("Scan Failed", $"User is not register, please check station in server");
+                return;
+            }
             dataBin!.lastbadgeno = User.badgeno;
             if (activity.Contains(bin.activity) && bin.openbinname.ToLower() != "nothing")
-            {
-                if (dataBin.weight != dataBin.prevweight)
+            { 
+                if (dataBin.prevweight is null || dataBin.prevweight == 0)
+                    dataBin.prevweight = dataBin.weight;
+                else
                 {
                     decimal diffCalc = dataBin.prevweight == 0 ?
-                        Math.Abs(((dataBin.prevweight.Value! - dataBin.weight) / Math.Abs(dataBin.weight)) * 100) :
-                        Math.Abs(((dataBin.weight - dataBin.prevweight!.Value!) / Math.Abs(dataBin.prevweight.Value!)) * 100);
-
-                    dataBin.prevweight = diffCalc > 4 ? dataBin.prevweight : dataBin.weight;
+                            Math.Abs(((dataBin.prevweight.Value! - dataBin.weight) / Math.Abs(dataBin.weight)) * 100) :
+                            Math.Abs(((dataBin.weight - dataBin.prevweight!.Value!) / Math.Abs(dataBin.prevweight.Value!)) * 100);
+                    Console.WriteLine(diffCalc);
+                    dataBin.prevweight = diffCalc > 4 ? dataBin.prevweight  : dataBin.weight;
                 }
                 await DbService.UpdateBin(dataBin);
                 await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
@@ -296,14 +303,15 @@ namespace CapacitorScanner.ViewModels
                                 var res = await httpClient.SendAsync(req);
                                 res.EnsureSuccessStatusCode();
 
-                                Console.WriteLine(await res.Content.ReadAsStringAsync());
-                                req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi-check");
-                                req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
-
-                                res = await httpClient.SendAsync(req);
-                                res.EnsureSuccessStatusCode();
                                 string data = await res.Content.ReadAsStringAsync();
                                 Console.WriteLine(data);
+                                //req = new HttpRequestMessage(HttpMethod.Get, $"{url}://{binhost}/verifikasi-check");
+                                //req.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64token}");
+
+                                //res = await httpClient.SendAsync(req);
+                                //res.EnsureSuccessStatusCode();
+                                //string data = await res.Content.ReadAsStringAsync();
+                                //Console.WriteLine(data);
                                 return data.Contains("1");
                             }
                             catch (HttpRequestException ex)
