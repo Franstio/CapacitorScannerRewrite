@@ -55,7 +55,7 @@ namespace CapacitorScanner.Api.Controllers
             if (dataBin == null)
                 return NotFound();
             dataBin.prevweight = prevWeight;
-            await _binLocalDbService.UpdateBin(dataBin);
+            await _binLocalDbService.UpdatePrevWeight(binName,prevWeight);
             return Ok();
         }
         [HttpGet("check")]
@@ -123,6 +123,7 @@ namespace CapacitorScanner.Api.Controllers
                 }
                 bin!.prevweight =  Convert.ToDecimal(scraprecord.RealWeight.ToString() );
                 await _binLocalDbService.UpdateBin(bin);
+                await _binLocalDbService.UpdatePrevWeight(bin!.bin, bin!.prevweight.Value);
 
                 if (bin.prevweight != Convert.ToDecimal(scraprecord.RealWeight.ToString()))
                     throw new Exception("prev Weight not updated");

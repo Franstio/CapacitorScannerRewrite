@@ -163,10 +163,18 @@ namespace CapacitorScanner.Core.Services
         {
             using (var con = await GetConn())
             {
-                string query = $"Update binhost set weight=@weight,prevweight=@prevweight,lastfrombinname=@lastfrombinname,lastbadgeno=@lastbadgeno,binweight=@binweight,wastetype=@wastetype,hostname=@hostname where bin=@bin";
+                string query = $"Update binhost set weight=@weight,lastfrombinname=@lastfrombinname,lastbadgeno=@lastbadgeno,binweight=@binweight,wastetype=@wastetype,hostname=@hostname where bin=@bin";
                 await con.ExecuteAsync(query, bin);
             }
 
+        }
+        public async Task UpdatePrevWeight(string bin, decimal prevweight)
+        {
+            string query = "Update binhost set prevweight=@prevweight where bin=@bin";
+            using (var con = await GetConn())
+            {
+                await con.ExecuteAsync(query, new { prevweight, bin });
+            }
         }
         public async Task InsertBinHost(BinLocalModel bin)
         {

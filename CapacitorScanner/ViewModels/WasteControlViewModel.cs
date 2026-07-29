@@ -252,6 +252,7 @@ namespace CapacitorScanner.ViewModels
                     dataBin.prevweight = diffCalc > 4 ? dataBin.prevweight  : dataBin.weight;
                 }
                 await DbService.UpdateBin(dataBin);
+                await DbService.UpdatePrevWeight(dataBin.bin, dataBin.prevweight.Value);
                 await DbService.UpdateStatusBin(bin.activity == 1 ? "Dispose" : "Collection", bin.openbinname);
                 var localContainer = containerBin.ToLocalModel();
                 localContainer.activity = bin.activity == 1 ? "Dispose" : "Collection";
