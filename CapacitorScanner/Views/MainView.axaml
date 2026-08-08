@@ -21,7 +21,7 @@
 
 		<DockPanel VerticalAlignment="Stretch"  Background="White" >
 			<Grid DockPanel.Dock="Top" ColumnDefinitions="70*,30*" RowDefinitions="auto">
-				<Label Padding="0,5,0,0" FontFamily="Century Gothic" FontSize="40" Foreground="White" HorizontalContentAlignment="Center"  Background="#4472c4" >PIDSG-BT Saleable Waste Control System</Label>
+				<Label Content="{Binding Title}"  Padding="0,5,0,0" FontFamily="Century Gothic" FontSize="40" Foreground="White" HorizontalContentAlignment="Center"  Background="#4472c4" />
 				<Grid ColumnDefinitions="80*,20*" Grid.Column="1">
 					<Grid Margin="5,5,0,0"  ColumnDefinitions="auto" RowDefinitions="60*,40*">
 						<Image Width="250" Grid.Row="0" Source="avares://CapacitorScanner/Assets/panasonic.png"/>

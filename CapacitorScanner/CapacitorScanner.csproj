@@ -36,7 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CapacitorScanner.Api\CapacitorScanner.Api.csproj" />
+    <ProjectReference Include="..\CapacitorScanner.Api\CapacitorScanner.Api.csproj">
+      <Private>True</Private>
+      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

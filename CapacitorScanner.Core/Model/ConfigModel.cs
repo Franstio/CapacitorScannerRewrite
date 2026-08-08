@@ -16,13 +16,13 @@ namespace CapacitorScanner.Core.Model
         public string verifystep2 { get; set; } = string.Empty;
         public string hostname { get; set; } = null!;
        public string dbpath { get; set; } = string.Empty;
-
+        public string version { get; set; } = "V1.0";
         public ConfigModel() 
         {
             hostname = Dns.GetHostName();
         }
 
-        public ConfigModel(string aPI_URL, string loginEndpoint, string stationActivity, string view, string verifystep2, string hostname, string dbpath)
+        public ConfigModel(string aPI_URL, string loginEndpoint, string stationActivity, string view, string verifystep2, string hostname, string dbpath,string version = "V1.0")
         {
             API_URL = aPI_URL;
             this.loginEndpoint = loginEndpoint;
@@ -31,6 +31,7 @@ namespace CapacitorScanner.Core.Model
             this.verifystep2 = verifystep2;
             this.hostname = string.IsNullOrEmpty(hostname) ? Dns.GetHostName() : hostname;
             this.dbpath = dbpath;
+            this.version = version;
         }
     }
 }

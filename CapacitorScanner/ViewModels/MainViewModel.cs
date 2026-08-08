@@ -25,7 +25,8 @@ public partial class MainViewModel : ViewModelBase
     private string stationName  = "Station - Type";
     [ObservableProperty]
     private string machineName = "NAME";
-
+    [ObservableProperty]
+    private string title = "PIDSG-BT Saleable Waste Control System";
     private readonly PIDSGService PIDSGService;
     private readonly ConfigService ConfigService;
     private readonly DialogService dialogService;
@@ -64,7 +65,7 @@ public partial class MainViewModel : ViewModelBase
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += (_, _) =>
             {
-
+                Title = $"PIDSG-BT Saleable Waste Control System {ConfigService.Config.version}";
                 Time = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
             };
             timer.Start();
