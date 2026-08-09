@@ -235,6 +235,7 @@ namespace CapacitorScanner.ViewModels
             var dataBin = await DbService.GetBin(OpenBin.openbinname);
             if (dataBin is null)
             {
+                OpenBin = null;
                 await dialogService.ShowMessageAsync("Scan Failed", $"User is not register, please check station in server");
                 return;
             }
