@@ -230,7 +230,7 @@ namespace CapacitorScanner.ViewModels
                     return;
                 }
             }
-            if (bin?.openbinname == "nothing")
+            if (bin?.openbinname.ToLower() == "nothing")
             {
 
                 OpenBin = null;
