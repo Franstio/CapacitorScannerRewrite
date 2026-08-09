@@ -230,6 +230,13 @@ namespace CapacitorScanner.ViewModels
                     return;
                 }
             }
+            if (bin?.openbinname == "nothing")
+            {
+
+                OpenBin = null;
+                await dialogService.ShowMessageAsync("Scan Failed", bin?.status ?? "-");
+                return;
+            }
             OpenBin = bin;
             if (bin is null || OpenBin is null) return;
             var dataBin = await DbService.GetBin(OpenBin.openbinname);
