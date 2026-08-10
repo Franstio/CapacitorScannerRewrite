@@ -232,7 +232,7 @@ namespace CapacitorScanner.ViewModels
             }
             if (bin?.openbinname.ToLower() == "nothing")
             {
-
+                Container = null;
                 OpenBin = null;
                 await dialogService.ShowMessageAsync("Scan Failed", bin?.status ?? "-");
                 return;
@@ -243,6 +243,7 @@ namespace CapacitorScanner.ViewModels
             if (dataBin is null)
             {
                 OpenBin = null;
+                Container = null;
                 await dialogService.ShowMessageAsync("Scan Failed", $"User is not register, please check station in server");
                 return;
             }
