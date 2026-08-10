@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
 using CapacitorScanner.Core.Model.LocalDb;
+using Avalonia.Threading;
 
 namespace CapacitorScanner.ViewModels
 {
@@ -124,11 +125,14 @@ namespace CapacitorScanner.ViewModels
         }
         void ResetStateInput(string message = "Scan Badge ID")
         {
-            Message = message;
-            User = null;
-            Container = null;
-            OpenBin = null;
-            transactionType = null;
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                Message = message;
+                User = null;
+                Container = null;
+                OpenBin = null;
+                transactionType = null;
+            });
         }
 
         public async Task<ContainerBinModel?> LoadContainerBin(string binName)
