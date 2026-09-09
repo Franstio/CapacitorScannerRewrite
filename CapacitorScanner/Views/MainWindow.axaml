@@ -7,6 +7,8 @@
         x:Class="CapacitorScanner.Views.MainWindow"
         xmlns:views="clr-namespace:CapacitorScanner.Views"
         x:DataType="vm:MainWindowViewModel"
+        WindowState="FullScreen"
+        SystemDecorations="None"
         Icon="/Assets/avalonia-logo.ico"
         Title="CapacitorScanner">
 

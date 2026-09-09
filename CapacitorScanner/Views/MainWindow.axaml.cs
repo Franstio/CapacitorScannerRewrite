@@ -14,7 +14,7 @@ namespace CapacitorScanner.Views
             InitializeComponent();
             _ = Task.Run(async () =>
             {
-                await Task.Delay(1000); ;
+                await Task.Delay(5000); ;
                 Dispatcher.UIThread.Post(() =>
                 {
                     this.WindowState = WindowState.FullScreen;
