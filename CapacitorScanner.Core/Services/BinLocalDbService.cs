@@ -163,7 +163,7 @@ namespace CapacitorScanner.Core.Services
         {
             using (var con = await GetConn())
             {
-                string query = $"Update binhost set weight=@weight,lastfrombinname=@lastfrombinname,lastbadgeno=@lastbadgeno,binweight=@binweight,wastetype=@wastetype,hostname=@hostname where bin=@bin";
+                string query = $"Update binhost set weight=@weight,maxweight=@maxweight,lastfrombinname=@lastfrombinname,lastbadgeno=@lastbadgeno,binweight=@binweight,wastetype=@wastetype,hostname=@hostname where bin=@bin";
                 await con.ExecuteAsync(query, bin);
             }
 
